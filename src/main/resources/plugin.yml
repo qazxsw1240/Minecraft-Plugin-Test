@@ -1,0 +1,13 @@
+name: Test
+version: '${version}'
+main: com.github.test.Test
+api-version: '1.21'
+prefix: Test
+
+commands:
+  command:
+    description: "This is a command"
+    usage: "/command <arg>"
+    aliases: [cmd, command]
+    permission: permission.node
+    permission-message: "You do not have permission to use this command"
