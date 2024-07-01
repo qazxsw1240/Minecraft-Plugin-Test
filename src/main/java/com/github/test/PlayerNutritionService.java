@@ -18,7 +18,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
-import java.sql.Connection;
+import java.sql.*;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
@@ -29,6 +29,7 @@ public class PlayerNutritionService implements Listener, PlayerNutritionListener
     private static final int DEFAULT_EXHAUSTION_DECREMENT = 1;
 
     private final NutritionFactMap nutritionFactMap;
+    private final Connection connection;
     private final FormattedLogger logger;
     private final NamespacedKey nutritionKey;
     private final ConcurrentMap<UUID, PlayerNutrition> playerNutritionMap;
@@ -46,8 +47,9 @@ public class PlayerNutritionService implements Listener, PlayerNutritionListener
             NutritionFactMap nutritionFactMap,
             Connection connection,
             FormattedLogger logger) {
-        this.logger = logger;
         this.nutritionFactMap = nutritionFactMap;
+        this.connection = connection;
+        this.logger = logger;
         this.nutritionKey = new NamespacedKey(plugin, "nutrition");
         this.playerNutritionMap = new ConcurrentSkipListMap<>();
         this.executorServiceMap = new ConcurrentSkipListMap<>();
@@ -59,6 +61,7 @@ public class PlayerNutritionService implements Listener, PlayerNutritionListener
         this.decrement = DEFAULT_EXHAUSTION_DECREMENT;
         this.decrementNutritionFacts = calculateDecrementNutritionFacts();
 
+        initializeSqlTable();
         addListener((player, nutrition) -> player.sendMessage(Component.text("now your nutrition status is " + this.playerNutritionMap.get(player.getUniqueId()))));
     }
 
@@ -175,6 +178,37 @@ public class PlayerNutritionService implements Listener, PlayerNutritionListener
     @Override
     public void removeAllListeners() {
         this.listeners.clear();
+    }
+
+    private void initializeSqlTable() {
+        try {
+            DatabaseMetaData databaseMetaData = this.connection.getMetaData();
+            ResultSet resultSet = databaseMetaData.getTables(null, null, "player_nutrition", new String[]{"TABLE"});
+            try (resultSet) {
+                if (!resultSet.next()) {
+                    try (Statement statement = this.connection.createStatement()) {
+                        statement.execute("""
+                                           create table player_nutrition (
+                                              uuid         varchar not null constraint player_nutrition_pk primary key,
+                                              carbohydrate integer not null,
+                                              protein      integer not null,
+                                              fat          integer not null,
+                                              vitamin      integer not null
+                                          )
+                                          """);
+                        statement.execute("""
+                                          create unique index player_nutrition_uuid_uindex
+                                             on player_nutrition (uuid)
+                                          """);
+                        this.logger.info("Successfully create table 'player_nutrition'");
+                    }
+                } else {
+                    this.logger.info("found existing table 'player_nutrition'");
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private Set<NutritionFact> calculateDecrementNutritionFacts() {
