@@ -12,7 +12,7 @@ public class PlayerNutrition extends Connectable {
     private int vitamin;
 
     public PlayerNutrition(
-             Connection connection,
+            Connection connection,
             String uuid,
             int carbohydrate,
             int protein,
