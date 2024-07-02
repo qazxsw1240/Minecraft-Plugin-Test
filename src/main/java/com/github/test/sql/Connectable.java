@@ -14,11 +14,13 @@ public class Connectable {
     protected Connection connection;
 
     protected Connectable(Connection connection) {
+        if (connection == null) {
+            throw new NullPointerException("connection is null");
+        }
         this.connection = connection;
     }
 
     public boolean execute(String s) {
-        fetchConnection();
         try (Statement statement = this.connection.createStatement()) {
             boolean result = statement.execute(s);
             this.connection.commit();
@@ -29,7 +31,6 @@ public class Connectable {
     }
 
     public ResultSet executeStatement(String s) {
-        fetchConnection();
         try (Statement statement = this.connection.createStatement()) {
             return statement.executeQuery(s);
         } catch (SQLException e) {
@@ -38,7 +39,6 @@ public class Connectable {
     }
 
     public <T> Optional<T> executeStatement(String s, ResultMapper<T> mapper) {
-        fetchConnection();
         try (Statement statement = this.connection.createStatement()) {
             try (ResultSet set = statement.executeQuery(s)) {
                 this.connection.commit();

@@ -18,7 +18,6 @@ public class NutritionContainer extends Connectable {
     }
 
     public PlayerNutrition create(Player player) {
-        fetchConnection();
         String uuid = player.getUniqueId().toString();
         PlayerNutrition playerNutrition = new PlayerNutrition(this.connection, uuid, 0, 0, 0, 0);
         String sql = String.format(
@@ -35,7 +34,6 @@ public class NutritionContainer extends Connectable {
     }
 
     public Optional<PlayerNutrition> get(Player player) {
-        fetchConnection();
         String uuid = player.getUniqueId().toString();
         String sql = String.format("SELECT * FROM player_nutrition WHERE uuid='%s'", uuid);
         return executeStatement(sql, set -> {
