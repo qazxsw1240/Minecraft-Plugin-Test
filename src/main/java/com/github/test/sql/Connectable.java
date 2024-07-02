@@ -1,7 +1,5 @@
 package com.github.test.sql;
 
-import org.jetbrains.annotations.Contract;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -80,7 +78,7 @@ public class Connectable {
         }
     }
 
-    @Contract("-> fail")
+    @Deprecated
     protected void fetchConnection() {
         if (this.connection == null) {
             throw new NoSuchElementException("Cannot retrieve a connection.");
