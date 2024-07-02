@@ -150,12 +150,7 @@ public class PlayerNutritionService implements Listener, PlayerNutritionListener
         }
         this.logger.info("crafted " + item.getType().name());
         if (container.has(this.nutritionKey)) {
-            String nutritionKey = container.get(this.nutritionKey, PersistentDataType.STRING);
-            assert nutritionKey != null;
-            this.logger.info("find nutrition facts " + nutritionKey);
-            item.getItemMeta()
-                    .getPersistentDataContainer()
-                    .set(this.nutritionKey, PersistentDataType.STRING, nutritionKey);
+            item.setItemMeta(resultItem.getItemMeta());
         }
     }
 
