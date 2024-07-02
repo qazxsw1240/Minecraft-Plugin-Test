@@ -16,6 +16,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.meta.components.FoodComponent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -73,10 +74,18 @@ public final class Test extends JavaPlugin {
                 .build();
 
         ItemStack mudCookie = ItemStackBuilder.of(Material.COOKIE, 16)
-                .setMetaBuilder(meta -> meta.displayName(Component
-                        .text("Mud Cookie", Style.empty()
-                                .decoration(TextDecoration.ITALIC, TextDecoration.State.FALSE)
-                                .decorate(TextDecoration.BOLD))))
+                .setMetaBuilder(meta -> {
+                    meta.displayName(Component
+                            .text("Mud Cookie", Style.empty()
+                                    .decoration(TextDecoration.ITALIC, TextDecoration.State.FALSE)
+                                    .decorate(TextDecoration.BOLD)));
+                    FoodComponent foodComponent = meta.getFood();
+                    foodComponent.setCanAlwaysEat(true);
+                    foodComponent.setEatSeconds(0.1f);
+                    foodComponent.setNutrition(0);
+                    foodComponent.setSaturation(0);
+                    meta.setFood(foodComponent);
+                })
                 .setMetaContainerBuilder(container -> container.set(nutritionKey, PersistentDataType.STRING, "mud_cookie"))
                 .build();
 
