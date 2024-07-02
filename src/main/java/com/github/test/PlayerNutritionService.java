@@ -67,6 +67,11 @@ public class PlayerNutritionService implements Listener, PlayerNutritionListener
             PlayerNutrition nutrition = playerNutritionMap.get(player.getUniqueId());
             player.sendMessage(Component.text("now your nutrition status is " + nutrition));
         });
+        addListener((PlayerNutritionConsumeListener) event -> {
+            Player player = event.getPlayer();
+            PlayerNutrition nutrition = playerNutritionMap.get(player.getUniqueId());
+            player.sendMessage(Component.text("now your nutrition status is " + nutrition));
+        });
     }
 
     private static int trimRange(int x) {
