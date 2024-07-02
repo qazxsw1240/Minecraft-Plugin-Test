@@ -8,9 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.function.Function;
 
-public class Connectable {
+public class Connectable implements ConnectionHolder {
     protected Connection connection;
 
     protected Connectable(Connection connection) {
@@ -18,6 +17,11 @@ public class Connectable {
             throw new NullPointerException("connection is null");
         }
         this.connection = connection;
+    }
+
+    @Override
+    public Connection getConnection() {
+        return this.connection;
     }
 
     public boolean execute(String s) {
@@ -53,8 +57,7 @@ public class Connectable {
         }
     }
 
-    public <T> List<T> executeStatements(String s, Function<ResultSet, T> mapper) {
-        fetchConnection();
+    public <T> List<T> executeStatements(String s, ResultMapper<T> mapper) {
         try (Statement statement = this.connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
             try (ResultSet set = statement.executeQuery(s)) {
                 this.connection.commit();
@@ -68,7 +71,7 @@ public class Connectable {
                 }
                 List<T> results = new ArrayList<>(count);
                 while (set.next()) {
-                    T result = mapper.apply(set);
+                    T result = mapper.map(set);
                     results.add(result);
                 }
                 return results;
