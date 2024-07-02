@@ -62,7 +62,11 @@ public class PlayerNutritionService implements Listener, PlayerNutritionListener
         this.decrementNutritionFacts = calculateDecrementNutritionFacts();
 
         initializeSqlTable();
-        addListener((player, nutrition) -> player.sendMessage(Component.text("now your nutrition status is " + this.playerNutritionMap.get(player.getUniqueId()))));
+        addListener((PlayerNutritionAcquireListener) event -> {
+            Player player = event.getPlayer();
+            PlayerNutrition nutrition = playerNutritionMap.get(player.getUniqueId());
+            player.sendMessage(Component.text("now your nutrition status is " + nutrition));
+        });
     }
 
     private static int trimRange(int x) {
@@ -115,7 +119,7 @@ public class PlayerNutritionService implements Listener, PlayerNutritionListener
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
         this.executorServiceMap.put(uuid, executorService);
         long delay = this.exhaustionDelay.toMillis();
-        executorService.scheduleAtFixedRate(() -> updateNutritionFacts(player, this.decrementNutritionFacts), delay, delay, TimeUnit.MILLISECONDS);
+        executorService.scheduleAtFixedRate(() -> updateNutritionFacts(player, this.decrementNutritionFacts, false), delay, delay, TimeUnit.MILLISECONDS);
     }
 
     @EventHandler
@@ -162,7 +166,7 @@ public class PlayerNutritionService implements Listener, PlayerNutritionListener
         Player player = event.getPlayer();
         String key = container.get(this.nutritionKey, PersistentDataType.STRING);
         Set<NutritionFact> nutritionFacts = this.nutritionFactMap.get(key);
-        updateNutritionFacts(player, nutritionFacts);
+        updateNutritionFacts(player, nutritionFacts, true);
     }
 
     @Override
@@ -178,6 +182,15 @@ public class PlayerNutritionService implements Listener, PlayerNutritionListener
     @Override
     public void removeAllListeners() {
         this.listeners.clear();
+    }
+
+    @Override
+    public <L extends PlayerNutritionListener> Set<L> getListener(Class<L> listenerType) {
+        return this.listeners
+                .stream()
+                .filter(listenerType::isInstance)
+                .map(listenerType::cast)
+                .collect(Collectors.toSet());
     }
 
     private void initializeSqlTable() {
@@ -217,7 +230,7 @@ public class PlayerNutritionService implements Listener, PlayerNutritionListener
                 .collect(Collectors.toSet());
     }
 
-    private void updateNutritionFacts(Player player, Set<NutritionFact> nutritionFacts) {
+    private void updateNutritionFacts(Player player, Set<NutritionFact> nutritionFacts, boolean isAcquire) {
         PlayerNutrition playerNutrition = this.playerNutritionMap.get(player.getUniqueId());
         for (NutritionFact nutritionFact : nutritionFacts) {
             switch (nutritionFact.getNutrition()) {
@@ -243,6 +256,14 @@ public class PlayerNutritionService implements Listener, PlayerNutritionListener
                 }
             }
         }
-        this.listeners.forEach(listener -> listener.onNutritionUpdate(player, playerNutrition));
+        if (isAcquire) {
+            PlayerNutritionAcquireEvent event = PlayerNutritionAcquireEvent.of(player, playerNutrition);
+            getListener(PlayerNutritionAcquireListener.class)
+                    .forEach(listener -> listener.onNutritionAcquire(event));
+        } else {
+            PlayerNutritionConsumeEvent event = PlayerNutritionConsumeEvent.of(player, playerNutrition);
+            getListener(PlayerNutritionConsumeListener.class)
+                    .forEach(listener -> listener.onNutritionConsume(event));
+        }
     }
 }
