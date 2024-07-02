@@ -62,6 +62,7 @@ public final class Test extends JavaPlugin {
         registerEvents(
                 new PeacefulWorldService(),
                 new PlayerNutritionService(this, this.nutritionFactMap, this.connection, this.logger),
+                new CareerService(this.connection, this.logger),
                 new ExperienceService(this.logger),
                 ChatService.getInstance());
 
@@ -81,7 +82,7 @@ public final class Test extends JavaPlugin {
                                     .decorate(TextDecoration.BOLD)));
                     FoodComponent foodComponent = meta.getFood();
                     foodComponent.setCanAlwaysEat(true);
-                    foodComponent.setEatSeconds(0.1f);
+                    foodComponent.setEatSeconds(1.2f);
                     foodComponent.setNutrition(0);
                     foodComponent.setSaturation(0);
                     meta.setFood(foodComponent);
@@ -94,7 +95,7 @@ public final class Test extends JavaPlugin {
                 .setIngredient('A', Material.DIRT);
 
         ShapedRecipe mudCookieRecipe = new ShapedRecipe(new NamespacedKey(this, "MudCookie"), mudCookie)
-                .shape("AAA", "AAA", "AAA")
+                .shape(" A ", "AAA", " A ")
                 .setIngredient('A', Material.DIRT);
 
         this.nutritionFactMap.put("mud_cookie", Set.of(
